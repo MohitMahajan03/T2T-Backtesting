@@ -1,0 +1,227 @@
+{% extends "base.html" %}
+{% block content %}
+<br>
+<h1 style="color: #E67E22;">T2T Back Testing</h1>
+<!-- <div class="card">
+  <div class="card-body">
+    <h4 class="card-title">What is backtesting?</h4>
+    <h6 class="card-subtitle mb-2 text-muted">Card subtitle</h6>
+    <p class="card-text">Backtesting means the process of testing a trading strategy on historical data to assess its accuracy. Technical traders often use this to test the trading strategies to find how it is likely to perform in the real market. Though, no funds are invested in reality. Backtesting is based on the phenomenon that, the strategy which performed well in the past, is expected to work well in the future and vice versa.</p>
+    <a href="#" class="card-link">Card link</a>
+    <a href="#" class="card-link">Another link</a>
+  </div>
+</div> -->
+<div class="card">
+    <div class="card-body">
+      <form action="/" method="POST">
+        <div class="form-row">
+<!-- scripcode -->
+            <div class="form-group col-md-6">
+                <label for="scripcode">Scripcode</label>
+                <input type="text" class="form-control" id="scripcode" placeholder="TCS FUT" name="scripcode" required oninput="getSuggestions(this.value)">
+                <div id="suggestions-box" class="suggestions-box"></div>
+            </div>
+<!-- system -->
+            <div class="form-group col-md-6">
+              <label for="system">System</label>
+              <br>
+              <select class="form-control" aria-label="Default select example" id="system" name="system">
+                <option selected value="0" style="color: black;">Select a system</option>
+                {% for key in systems %}
+                <option value="{{key}}" style="color: black;">{{systems[key]}}</option>
+                {% endfor %}
+              </select>
+            </div>
+
+        </div>
+
+        <div class="form-row">
+<!-- start date -->
+            <div class="form-group col-md-6">
+                <label for="start_date">Start Date</label>
+                <input type="date" class="form-control" id="start_date" name="start_date" placeholder="YYYY-MM-DD" required>
+            </div>
+<!-- end date -->
+            <div class="form-group col-md-6">
+                <label for="end_date">End Date</label>
+                <input type="date" class="form-control" id="end_date" name="end_date" placeholder="YYYY-MM-DD" required>
+            </div>
+        </div>
+
+        <div class="form-row">
+          <div class="form-group col-md criteria-group">
+            <label for="entry_criteria">Entry Criteria</label>
+            <br>
+            <select class="form-control" aria-label="Default select example" id="entry_criteria" name="entry_criteria">
+              <option selected value="0" style="color: black;">Select a criteria</option>
+              {% for key in criteria %}
+              <option value="{{key}}" style="color: black;">{{key}}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group col-md criteria-group">
+            <label for="exit_criteria">Exit Criteria</label>
+            <br>
+            <select class="form-control" aria-label="Default select example" id="exit_criteria" name="exit_criteria">
+              <option selected value="0" style="color: black;">Select a criteria</option>
+              {% for key in criteria %}
+              <option value="{{key}}" style="color: black;">{{key}}</option>
+              {% endfor %}
+            </select>
+            <br>
+          </div>
+        </div>
+
+<!-- entry buffer -->
+        <div class="form-row">
+          <div class="form-group col-md-6">
+            <label for="entry_buffer">Entry Buffer</label>
+            <input type="number" class="form-control" id="entry_buffer" min="0" step="0.001" name="entry_buffer" required>
+          </div>
+<!-- exit buffer -->
+          <div class="form-group col-md-6">
+            <label for="exit_buffer">Exit Buffer</label>
+            <input type="number" class="form-control" id="entry_buffer" min="0" step="0.001" name="exit_buffer" required>
+          </div>
+         
+        </div>
+        
+
+        <div class="form-row">
+<!-- MSL -->
+            <div class="form-group col-md stop-loss-group">
+                <label for="msl">Monetary Stop Loss (%)</label>
+                <input type="number" class="form-control" id="msl" name="msl" min="0" step="0.001">
+            </div>
+<!-- TSL -->
+            <div class="form-group col-md stop-loss-group">
+                <label for="tsl1">Technical Stop Loss (%) - Day 1</label>
+                <input type="number" class="form-control" id="tsl1" name="tsl1" min="0" step="0.001">
+            </div>
+            <div class="form-group col-md stop-loss-group">
+                <label for="tsl2">Technical Stop Loss (%) - Day 2 onwards</label>
+                <input type="number" class="form-control" id="tsl2" name="tsl2" min="0" step="0.001">
+            </div>
+            <div class="form-group col-md stop-loss-group">
+              <label for="days">Day Averages</label>
+              <input type="number" class="form-control" id="days" name="days" min="0" step="1">
+            </div>
+        </div>
+<!-- line choose  -->
+        <div class="form-row">
+          <div class="form-group col-md stop-loss-group">
+            <label for="line">Line &emsp13;&emsp13;&emsp13;</label>
+          {% for item in lines %}
+            {% if item == 'Close'%}
+              <div class="form-check form-check-radio form-check-inline">
+                <label class="form-check-label">
+                  <input class="form-check-input" type="radio" name="line" id="{{item}}" value="{{item}}" disabled checked> {{item}}
+                  <span class="form-check-sign"></span>
+                </label>
+              </div>
+            {%else%}
+              <div class="form-check form-check-radio form-check-inline">
+                <label class="form-check-label">
+                  <input class="form-check-input" type="radio" name="line" id="{{item}}" value="{{item}}" disabled> {{item}}
+                  <span class="form-check-sign"></span>
+                </label>
+              </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+        </div>
+
+<!-- note for Akasha Bhumi -->
+        <div class="note form-group">
+          <p><strong>Note: </strong>"Day Averages" number of trading days are taken to calculate the simple moving averages</p>
+        </div>
+<!-- bep rule checkbox -->
+        <div class="form-group col-md-4 form-check stop-loss-group" >
+          <label class="form-check-label">
+              <input class="form-check-input" type="checkbox" value="yes" name="bep">
+              Include BEP rule?
+              <span class="form-check-sign">
+                <span class="check"></span>
+              </span>
+          </label>
+        </div>
+        
+
+        <!-- <div class="form-row">
+          <div class="form-group col-md">
+            <label for="tor">Type of Report</label>
+            <br>
+            <select class="form-control" aria-label="Default select example">
+              <option selected style="color: black;">Select type of report to generate</option>
+              <option value="1" style="color: black;">Monthly High/Lows/Averages</option>
+              <option value="2" style="color: black;">Monthly P&L</option>
+              <option value="3" style="color: black;">Buy and Sell Trend</option>
+              <option value="4" style="color: black;">52 Week Highs Lows</option>
+            </select>
+          </div>
+          
+        </div> -->
+       
+        <!-- <div class="form-group">
+          <div class="form-check">
+            <label class="form-check-label">
+                <input class="form-check-input" type="checkbox" value="">
+                Check me out
+                <span class="form-check-sign">
+                  <span class="check"></span>
+                </span>
+            </label>
+          </div>
+        </div> -->
+        <br>
+        <div style="display:inline-block;">
+          <button type="submit" class="btn btn-warning btn-simple" id="search" name="search">Search</button>
+        </div>
+        {% if downflag %}
+          <div class="download" style="float: right">
+            <a href="/getPlotCSV/{{filename}}"><button type="button" class="btn btn-warning btn-simple" id="download" name="download">Download .csv</button></a>
+          </div>
+        {% endif %}
+          
+        
+      </form>
+    </div>
+  </div>
+  <input type="hidden" name="filename" id="filename" value="{{filename}}">
+<!-- example chart -->
+<!-- {% if data %}
+  <div class="content">
+      <div class="row">
+        <div class="col-12">
+          <div class="card card-chart">
+            <div class="card-header ">
+              <div class="row">
+                <div class="col-sm-6 text-left">
+                  <h5 class="card-category" >{{line |default('')}}</h5>
+                  <h2 class="card-title" >^NSEI</h2>
+                </div>
+              </div>
+            </div>
+            <div class="card-body">
+              <div id="plotly-chart">
+                <table border="1">
+                  {% for row in data %}
+                      <tr>
+                          {% for cell in row %}
+                              <td>{{ cell }}</td>
+                          {% endfor %}
+                      </tr>
+                  {% endfor %}
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+  </div>
+{% endif %} -->
+<script src="static\js\conditions.js"></script>
+{% endblock %}
+
+
+
